@@ -1,0 +1,4 @@
+- Drizzle ORM
+- Docker
+- PostgreSQL
+- Fastify
