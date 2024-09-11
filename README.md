@@ -13,4 +13,7 @@ npx drizzle-kit generate
 
 #rodar no banco de dados
 npx drizzle-kit migrate
+
+#ver o banco de dados online
+npx drizzle-kit studio
 ```
