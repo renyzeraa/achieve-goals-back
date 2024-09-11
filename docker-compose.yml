@@ -1,4 +1,4 @@
-name: achieve-goals-server
+name: pocket-js-server
 
 services:
   pg:
@@ -8,4 +8,4 @@ services:
     environment:
       - POSTGRES_USER=docker
       - POSTGRES_PASSWORD=docker
-      - POSTGRES_DATABASE=achieve_goals
+      - POSTGRES_DB=inorbit
