@@ -9,8 +9,7 @@ import fastifyCors from "@fastify/cors"
 const app = fastify().withTypeProvider<ZodTypeProvider>()
 
 app.register(fastifyCors, {
-  origin: '*',
-  methods: ["POST", "GET"]
+  origin: '*'
 })
 
 app.setValidatorCompiler(validatorCompiler);
@@ -21,8 +20,5 @@ app.register(createCompletionRoute)
 app.register(getPendingGoalsRoute)
 app.register(getWeekSummaryRoute)
 
-app.listen({
-  port: 3333
-}).then(() => {
-  console.log("🟢 Server is running")
-})
+//@ts-expect-error error de console chato
+app.listen({ port: 3333 }).then(() => console.log("🟢 Server is running"))

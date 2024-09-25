@@ -1,53 +1,66 @@
-import { and, count, eq, gte, lte, sql } from "drizzle-orm";
-import { db } from "../db";
-import { goalCompletions, goals } from "../db/schema";
-import dayjs from "dayjs";
+import { db } from '@/db'
+import { goalCompletions, goals } from '@/db/schema'
+import dayjs from 'dayjs'
+import weekOfYear from 'dayjs/plugin/weekOfYear'
+import { eq, sql, and } from 'drizzle-orm'
+
+dayjs.extend(weekOfYear)
 
 interface CreateGoalCompletionRequest {
   goalId: string
 }
 
-export async function createGoalCompletion({ goalId }: CreateGoalCompletionRequest) {
-  const firstDayOfWeek = dayjs().startOf('week').toDate()
-  const lastDayOfWeek = dayjs().endOf('week').toDate()
+export async function createGoalCompletion({
+  goalId,
+}: CreateGoalCompletionRequest) {
+  const currentYear = dayjs().year()
+  const currentWeek = dayjs().week()
 
-  const goalsCompletionCounts = db.$with('goals_completion_count').as(
+  const goalCompletionCounts = db.$with('goal_completion_counts').as(
     db
       .select({
         goalId: goalCompletions.goalId,
-        completionCount: count(goalCompletions.id).as('completionCount')
+        completionCount: sql`COUNT(${goalCompletions.id})`.as(
+          'completionCount'
+        ),
       })
       .from(goalCompletions)
       .where(
         and(
-          gte(goalCompletions.createdAt, firstDayOfWeek),
-          lte(goalCompletions.createdAt, lastDayOfWeek),
-          eq(goalCompletions.goalId, goalId)
+          eq(goalCompletions.goalId, goalId),
+          sql`EXTRACT(YEAR FROM ${goalCompletions.createdAt}) = ${currentYear}`,
+          sql`EXTRACT(WEEK FROM ${goalCompletions.createdAt}) = ${currentWeek}`
         )
       )
       .groupBy(goalCompletions.goalId)
   )
 
   const result = await db
-    .with(goalsCompletionCounts)
+    .with(goalCompletionCounts)
     .select({
-      desiredWeeklyFrequency: goals.desiredWeeklyFrequency,
-      completionCount: sql/*sql*/`
-        COALESCE(${goalsCompletionCounts.completionCount}, 0)
-      `.mapWith(Number),
+      isIncomplete: sql /*sql*/`
+        COALESCE(${goals.desiredWeeklyFrequency}, 0) > COALESCE(${goalCompletionCounts.completionCount}, 0)
+      `,
     })
     .from(goals)
-    .leftJoin(goalsCompletionCounts, eq(goalsCompletionCounts.goalId, goals.id))
+    .leftJoin(goalCompletionCounts, eq(goals.id, goalCompletionCounts.goalId))
     .where(eq(goals.id, goalId))
     .limit(1)
 
-  const { completionCount, desiredWeeklyFrequency } = result[0]
-  // se eu ja completei esta meta
-  if (completionCount >= desiredWeeklyFrequency) {
-    throw new Error('Esta meta já foi completada está semana !')
-  }
-  const insertResult = await db.insert(goalCompletions).values({ goalId }).returning()
-  const goalCompletion = insertResult[0];
-  return { goalCompletion }
+  const { isIncomplete } = result[0]
 
+  if (!isIncomplete) {
+    throw new Error('Goal already completed this week!')
+  }
+
+  const [goalCompletion] = await db
+    .insert(goalCompletions)
+    .values({
+      goalId,
+    })
+    .returning()
+
+  return {
+    goalCompletion,
+  }
 }

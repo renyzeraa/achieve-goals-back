@@ -1,7 +1,7 @@
 import dayjs from "dayjs"
 import { db } from "../db"
 import { goalCompletions, goals } from "../db/schema"
-import { and, eq, gte, lte, sql } from "drizzle-orm"
+import { and, desc, eq, gte, lte, sql } from "drizzle-orm"
 
 /**
  * Retorne as metas completadas em cada dia da semana em especifico
@@ -49,8 +49,8 @@ export async function getWeekSummary() {
         completions: sql/*sql*/`
           JSON_AGG(
             JSON_BUILD_OBJECT(
-              'goalId', ${goalsCompletedInWeek.id},
-              'goalTitle', ${goalsCompletedInWeek.title},
+              'id', ${goalsCompletedInWeek.id},
+              'title', ${goalsCompletedInWeek.title},
               'completedAt', ${goalsCompletedInWeek.completedAt}
             )
           )
@@ -58,6 +58,7 @@ export async function getWeekSummary() {
       })
       .from(goalsCompletedInWeek)
       .groupBy(goalsCompletedInWeek.completedAtDate)
+      .orderBy(desc(goalsCompletedInWeek.completedAtDate))
   )
 
   type GoalsPerDay = Record<string, {
@@ -66,7 +67,7 @@ export async function getWeekSummary() {
     id: string
   }[]>
 
-  const result = await db
+  const [summary] = await db
     .with(goalsCreatedUpToWeek, goalsCompletedInWeek, goalsCompletedByWeekDay)
     .select({
       completed: sql/*sql*/`
@@ -84,6 +85,6 @@ export async function getWeekSummary() {
     .from(goalsCompletedByWeekDay)
 
   return {
-    summary: result
+    summary
   }
 }
