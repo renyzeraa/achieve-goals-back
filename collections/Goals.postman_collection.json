@@ -1,0 +1,82 @@
+{
+	"info": {
+		"_postman_id": "cab4a571-85d5-454e-8fb6-672a54d8bd0d",
+		"name": "Goals",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "38385598"
+	},
+	"item": [
+		{
+			"name": "goal",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"title\": \"Lavar o carro\",\r\n    \"desiredWeeklyFrequency\": 1\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3333/goals",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3333",
+					"path": [
+						"goals"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "goal completion",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"goalId\": \"wrazsh1ln6lk7045kh2jwqpo\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3333/completions",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3333",
+					"path": [
+						"completions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "week summary",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "pending goals",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		}
+	]
+}
