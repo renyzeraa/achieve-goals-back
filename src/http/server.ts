@@ -12,13 +12,25 @@ app.register(fastifyCors, {
   origin: '*'
 })
 
-app.setValidatorCompiler(validatorCompiler);
-app.setSerializerCompiler(serializerCompiler);
+app.setValidatorCompiler(validatorCompiler)
+app.setSerializerCompiler(serializerCompiler)
 
 app.register(createGoalRoute)
 app.register(createCompletionRoute)
 app.register(getPendingGoalsRoute)
 app.register(getWeekSummaryRoute)
 
-//@ts-expect-error error de console chato
+// Manipulador de erros global
+app.setErrorHandler((error, request, reply) => {
+  console.error(error); // Log do erro no console
+
+  const statusCode = error.statusCode || 500
+  const message = error.message || "Internal Server Error"
+
+  reply.status(statusCode).send({
+    statusCode,
+    message,
+  });
+});
+
 app.listen({ port: 3333 }).then(() => console.log("🟢 Server is running"))
